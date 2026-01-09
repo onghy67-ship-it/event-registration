@@ -5,15 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registration 登记</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .register-page.science-theme {
+      background: linear-gradient(135deg, #1565c0, #42a5f5);
+    }
+    .register-page.business-theme {
+      background: linear-gradient(135deg, #e65100, #ff9800);
+    }
+    .category-indicator {
+      background: rgba(255,255,255,0.2);
+      padding: 8px 20px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 10px;
+    }
+  </style>
 </head>
-<body class="register-page">
+<body class="register-page" id="body">
   <header class="header header-simple">
     <h1 id="eventTitle">Event Registration</h1>
     <p>Please fill in your details 请填写您的资料</p>
+    <div class="category-indicator" id="categoryIndicator"></div>
   </header>
 
   <main class="form-container">
-    <!-- Registration Form -->
+    <!-- Form -->
     <div class="card" id="formCard">
       <h2>📝 Registration 登记</h2>
       
@@ -41,7 +57,7 @@
       </form>
     </div>
 
-    <!-- Success Message -->
+    <!-- Success -->
     <div class="card success-card" id="successCard">
       <div class="success-icon">✅</div>
       <h2>Success! 成功!</h2>
