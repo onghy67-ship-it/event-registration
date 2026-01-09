@@ -14,7 +14,7 @@ const io = new Server(httpServer, {
 const PORT = process.env.PORT || 3000;
 
 // ⚠️ REPLACE WITH YOUR GOOGLE APPS SCRIPT URL!
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/library/d/1lC3r5M42OqAXk7SG5sfhS-ECyukXihV_d4pDH81RArCrVBThcxEIrbiw/2';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbynVPfC5TVypKSoG_vd_-FZ2M6XX8alYFGkGaFQ4ciq94BTIRlHvCE-J929O22YXlti/exec';
 
 // Middleware
 app.use(cors());
@@ -293,3 +293,4 @@ httpServer.listen(PORT, '0.0.0.0', () => {
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log('');
 });
+
