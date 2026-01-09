@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .category-section {
+      border-left: 4px solid #ddd;
+      padding-left: 20px;
+      margin-bottom: 30px;
+    }
+    .science-section { border-color: #1565c0; }
+    .business-section { border-color: #e65100; }
+    .section-title {
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
 </head>
 <body>
   <header class="header">
@@ -13,56 +29,90 @@
   </header>
 
   <main class="container">
-    <a href="/" class="btn" style="margin-bottom:20px;">← Dashboard</a>
+    <div style="margin-bottom: 20px;">
+      <a href="/?category=science" class="btn">← Science Dashboard</a>
+      <a href="/?category=business" class="btn">← Business Dashboard</a>
+    </div>
 
-    <!-- Event Settings -->
+    <!-- Science/Engineering Settings -->
     <section class="card">
-      <h2>📋 Event Settings 活动设置</h2>
+      <h2 class="card-title">🔬 Science & Engineering 理工科</h2>
+      
+      <div class="category-section science-section">
+        <div class="form-group">
+          <label>Event Name 活动名称</label>
+          <input type="text" id="eventNameScience">
+          <button class="btn btn-primary" onclick="saveSetting('event_name_science', 'eventNameScience')">Save</button>
+        </div>
+        
+        <div class="section-title">Programmes 课程</div>
+        <ul id="programmesScience" class="list"></ul>
+        <div class="form-row">
+          <input type="text" id="newProgrammeScience" placeholder="New programme">
+          <button class="btn btn-success" onclick="addProgramme('science')">+ Add</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Business/Art Settings -->
+    <section class="card">
+      <h2 class="card-title">💼 Business & Art 商业与艺术</h2>
+      
+      <div class="category-section business-section">
+        <div class="form-group">
+          <label>Event Name 活动名称</label>
+          <input type="text" id="eventNameBusiness">
+          <button class="btn btn-primary" onclick="saveSetting('event_name_business', 'eventNameBusiness')">Save</button>
+        </div>
+        
+        <div class="section-title">Programmes 课程</div>
+        <ul id="programmesBusiness" class="list"></ul>
+        <div class="form-row">
+          <input type="text" id="newProgrammeBusiness" placeholder="New programme">
+          <button class="btn btn-success" onclick="addProgramme('business')">+ Add</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shared Settings -->
+    <section class="card">
+      <h2 class="card-title">📋 Shared Settings 共享设置</h2>
       
       <div class="form-group">
-        <label>Event Name 活动名称</label>
-        <input type="text" id="eventName">
-        <button class="btn btn-primary" onclick="saveEventName()">Save 保存</button>
-      </div>
-
-      <div class="form-group">
-        <label>Max Capacity 最大容量</label>
+        <label>Max Capacity (per category) 最大容量</label>
         <input type="number" id="maxCapacity" min="1">
-        <button class="btn btn-primary" onclick="saveCapacity()">Save 保存</button>
+        <button class="btn btn-primary" onclick="saveSetting('max_capacity', 'maxCapacity')">Save</button>
       </div>
     </section>
 
-    <!-- Programmes -->
+    <!-- Data Management -->
     <section class="card">
-      <h2>📚 Programmes 课程</h2>
-      <ul id="programmeList" class="list"></ul>
-      <div class="form-row">
-        <input type="text" id="newProgramme" placeholder="New programme 新课程">
-        <button class="btn btn-success" onclick="addProgramme()">+ Add</button>
+      <h2 class="card-title">💾 Data Management 数据管理</h2>
+      
+      <div class="button-group" style="margin-bottom: 20px;">
+        <button class="btn btn-primary" onclick="exportCSV('science')">📥 Export Science CSV</button>
+        <button class="btn btn-primary" onclick="exportCSV('business')">📥 Export Business CSV</button>
       </div>
-    </section>
-
-    <!-- Data -->
-    <section class="card">
-      <h2>💾 Data 数据</h2>
+      
       <div class="button-group">
-        <button class="btn btn-primary" onclick="exportCSV()">📥 CSV</button>
-        <button class="btn btn-primary" onclick="exportJSON()">📥 JSON</button>
-        <button class="btn btn-danger" onclick="showClearModal()">🗑️ Clear All</button>
+        <button class="btn btn-danger" onclick="showClearModal('science')">🗑️ Clear Science Data</button>
+        <button class="btn btn-danger" onclick="showClearModal('business')">🗑️ Clear Business Data</button>
+        <button class="btn btn-danger" onclick="showClearModal('all')">🗑️ Clear ALL Data</button>
       </div>
-      <p class="help-text">⚠️ Clear All will delete all registration data permanently!</p>
+      
+      <p class="help-text">⚠️ Clear will permanently delete registration data!</p>
     </section>
   </main>
 
   <!-- Clear Modal -->
   <div class="modal-backdrop" id="clearModal">
     <div class="modal">
-      <h3>⚠️ Clear All Data?</h3>
-      <p>Type <strong>DELETE</strong> to confirm:</p>
+      <h3>⚠️ Clear Data?</h3>
+      <p id="clearMessage">Type DELETE to confirm:</p>
       <input type="text" id="confirmText" placeholder="DELETE">
       <div class="modal-buttons">
         <button class="btn" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-danger" onclick="confirmClear()">Clear All</button>
+        <button class="btn btn-danger" onclick="confirmClear()">Clear</button>
       </div>
     </div>
   </div>
