@@ -39,9 +39,48 @@ function getBaseUrl(req) {
 // =====================
 
 // Get all registrations
-app.get('/api/registrations', (req, res) => {
+// Export CSV with Malaysia timezone
+app.get('/api/admin/export/csv', (req, res) => {
   try {
-    res.json({ success: true, data: registrations.getAll() });
+    const data = registrations.getAll();
+    const eventName = settings.get('event_name') || 'event';
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `${eventName.replace(/[^a-z0-9]/gi, '_')}_${date}.csv`;
+    
+    // Function to format time in Malaysia timezone
+    const formatMYTime = (dateStr) => {
+      if (!dateStr) return '';
+      return new Date(dateStr).toLocaleString('en-MY', {
+        timeZone: 'Asia/Kuala_Lumpur',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    };
+    
+    const headers = ['ID', 'Timestamp', 'Name', 'Phone', 'Programme', 'Status', 'Remark', 'Time In'];
+    const rows = [headers.join(',')];
+    
+    data.forEach(r => {
+      rows.push([
+        r.id,
+        `"${formatMYTime(r.timestamp)}"`,
+        `"${r.student_name}"`,
+        `"${r.phone_number}"`,
+        `"${r.programme}"`,
+        r.status,
+        `"${r.remark || ''}"`,
+        `"${formatMYTime(r.time_in)}"`
+      ].join(','));
+    });
+    
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'text/csv');
+    res.send(rows.join('\n'));
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -236,4 +275,5 @@ httpServer.listen(PORT, '0.0.0.0', () => {
   console.log('║   Admin Panel:  /admin.html                       ║');
   console.log('╚═══════════════════════════════════════════════════╝');
   console.log('');
+
 });
