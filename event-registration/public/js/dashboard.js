@@ -205,7 +205,16 @@ function printQR() {
 
 function formatTime(s) {
   if (!s) return '-';
-  return new Date(s).toLocaleString('en-MY', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  return new Date(s).toLocaleString('en-MY', { 
+    timeZone: 'Asia/Kuala_Lumpur',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
 }
 
 function esc(s) {
@@ -227,4 +236,5 @@ function beep() {
     o.start();
     o.stop(c.currentTime + 0.1);
   } catch (e) {}
+
 }
