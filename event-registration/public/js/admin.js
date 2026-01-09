@@ -1,5 +1,7 @@
 let config = {};
-let programmes = [];
+let programmesScience = [];
+let programmesBusiness = [];
+let clearCategory = null;
 
 document.addEventListener('DOMContentLoaded', loadSettings);
 
@@ -7,66 +9,104 @@ async function loadSettings() {
   try {
     const res = await fetch('/api/settings');
     const json = await res.json();
+    
     if (json.success) {
       config = json.data;
-      programmes = config.programmes || [];
-      document.getElementById('eventName').value = config.event_name || '';
+      
+      // Science settings
+      document.getElementById('eventNameScience').value = config.event_name_science || '';
+      programmesScience = config.programmes_science || [];
+      renderProgrammes('science');
+      
+      // Business settings
+      document.getElementById('eventNameBusiness').value = config.event_name_business || '';
+      programmesBusiness = config.programmes_business || [];
+      renderProgrammes('business');
+      
+      // Shared settings
       document.getElementById('maxCapacity').value = config.max_capacity || 50;
-      renderList();
     }
   } catch (e) { console.error(e); }
 }
 
-function renderList() {
-  document.getElementById('programmeList').innerHTML = programmes.map((p, i) => `
-    <li><span>${p}</span><button class="btn btn-danger btn-sm" onclick="removeProg(${i})">✕</button></li>
+function renderProgrammes(category) {
+  const list = category === 'science' ? programmesScience : programmesBusiness;
+  const listId = category === 'science' ? 'programmesScience' : 'programmesBusiness';
+  
+  document.getElementById(listId).innerHTML = list.map((p, i) => `
+    <li><span>${p}</span><button class="btn btn-danger btn-sm" onclick="removeProgramme('${category}', ${i})">✕</button></li>
   `).join('');
 }
 
-async function save(key, value) {
+async function saveSetting(key, inputId) {
+  const value = document.getElementById(inputId).value;
+  if (!value) { alert('Enter a value'); return; }
+  
   await fetch('/api/settings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ key, value })
   });
-}
-
-async function saveEventName() {
-  const v = document.getElementById('eventName').value.trim();
-  if (!v) return alert('Enter name');
-  await save('event_name', v);
+  
   alert('Saved!');
 }
 
-async function saveCapacity() {
-  const v = parseInt(document.getElementById('maxCapacity').value);
-  if (!v || v < 1) return alert('Invalid');
-  await save('max_capacity', v);
-  alert('Saved!');
-}
-
-async function addProgramme() {
-  const input = document.getElementById('newProgramme');
-  const v = input.value.trim();
-  if (!v) return alert('Enter name');
-  if (programmes.includes(v)) return alert('Exists');
-  programmes.push(v);
-  await save('programmes', programmes);
+async function addProgramme(category) {
+  const inputId = category === 'science' ? 'newProgrammeScience' : 'newProgrammeBusiness';
+  const input = document.getElementById(inputId);
+  const value = input.value.trim();
+  
+  if (!value) { alert('Enter programme name'); return; }
+  
+  const list = category === 'science' ? programmesScience : programmesBusiness;
+  if (list.includes(value)) { alert('Already exists'); return; }
+  
+  list.push(value);
+  
+  const key = category === 'science' ? 'programmes_science' : 'programmes_business';
+  await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, value: JSON.stringify(list) })
+  });
+  
   input.value = '';
-  renderList();
+  renderProgrammes(category);
 }
 
-async function removeProg(i) {
+async function removeProgramme(category, index) {
   if (!confirm('Remove?')) return;
-  programmes.splice(i, 1);
-  await save('programmes', programmes);
-  renderList();
+  
+  const list = category === 'science' ? programmesScience : programmesBusiness;
+  list.splice(index, 1);
+  
+  const key = category === 'science' ? 'programmes_science' : 'programmes_business';
+  await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, value: JSON.stringify(list) })
+  });
+  
+  renderProgrammes(category);
 }
 
-function exportCSV() { window.location.href = '/api/admin/export/csv'; }
-function exportJSON() { window.location.href = '/api/admin/export/json'; }
+function exportCSV(category) {
+  window.location.href = `/api/admin/export/csv?category=${category}`;
+}
 
-function showClearModal() {
+function showClearModal(category) {
+  clearCategory = category;
+  let message = 'Type DELETE to confirm:';
+  
+  if (category === 'science') {
+    message = 'Clear all SCIENCE & ENGINEERING data? Type DELETE:';
+  } else if (category === 'business') {
+    message = 'Clear all BUSINESS & ART data? Type DELETE:';
+  } else {
+    message = 'Clear ALL data from BOTH categories? Type DELETE:';
+  }
+  
+  document.getElementById('clearMessage').textContent = message;
   document.getElementById('clearModal').classList.add('active');
   document.getElementById('confirmText').value = '';
 }
@@ -77,9 +117,18 @@ function closeModal() {
 
 async function confirmClear() {
   if (document.getElementById('confirmText').value !== 'DELETE') {
-    return alert('Type DELETE to confirm');
+    alert('Type DELETE');
+    return;
   }
-  await fetch('/api/admin/clear', { method: 'POST' });
-  alert('All data cleared!');
+  
+  const body = clearCategory === 'all' ? {} : { category: clearCategory };
+  
+  await fetch('/api/admin/clear', { 
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  
+  alert('Data cleared!');
   closeModal();
 }
