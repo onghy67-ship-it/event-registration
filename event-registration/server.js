@@ -13,8 +13,8 @@ const io = new Server(httpServer, {
 
 const PORT = process.env.PORT || 3000;
 
-// ⚠️ REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL!
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5_flIbDGva0mdp51ErWxFhJ1e8GgFQoBXJ9F-pr0GFoXe43FWA4dhgorTZyUT0Rf0/exec';
+// ⚠️ REPLACE WITH YOUR GOOGLE APPS SCRIPT URL!
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/library/d/1lC3r5M42OqAXk7SG5sfhS-ECyukXihV_d4pDH81RArCrVBThcxEIrbiw/2';
 
 // Middleware
 app.use(cors());
@@ -25,7 +25,11 @@ app.set('trust proxy', true);
 // Helper: Call Google Apps Script
 async function callGoogleScript(params) {
   const url = new URL(GOOGLE_SCRIPT_URL);
-  Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+  Object.keys(params).forEach(key => {
+    if (params[key] !== undefined && params[key] !== null) {
+      url.searchParams.append(key, params[key]);
+    }
+  });
   
   try {
     const response = await fetch(url.toString());
@@ -50,15 +54,16 @@ function getBaseUrl(req) {
 // API ROUTES
 // =====================
 
-// Get all registrations
+// Get all registrations (with optional category filter)
 app.get('/api/registrations', async (req, res) => {
-  const result = await callGoogleScript({ action: 'getAll' });
+  const category = req.query.category;
+  const result = await callGoogleScript({ action: 'getAll', category });
   res.json(result);
 });
 
 // Create registration
 app.post('/api/registrations', async (req, res) => {
-  const { student_name, phone_number, programme } = req.body;
+  const { student_name, phone_number, programme, category } = req.body;
   
   if (!student_name || !phone_number || !programme) {
     return res.status(400).json({ success: false, error: 'All fields required' });
@@ -68,11 +73,13 @@ app.post('/api/registrations', async (req, res) => {
     action: 'add',
     student_name,
     phone_number,
-    programme
+    programme,
+    category: category || 'science'
   });
   
   if (result.success) {
     io.emit('new-registration', result.data);
+    io.emit(`new-registration-${category || 'science'}`, result.data);
   }
   
   res.json(result);
@@ -132,7 +139,8 @@ app.delete('/api/registrations/:id', async (req, res) => {
 
 // Get stats
 app.get('/api/stats', async (req, res) => {
-  const regResult = await callGoogleScript({ action: 'getAll' });
+  const category = req.query.category;
+  const regResult = await callGoogleScript({ action: 'getAll', category });
   const settingsResult = await callGoogleScript({ action: 'getSettings' });
   
   if (regResult.success && settingsResult.success) {
@@ -171,20 +179,30 @@ app.post('/api/settings', async (req, res) => {
   res.json(result);
 });
 
-// Clear all registrations
+// Clear registrations (with optional category)
 app.post('/api/admin/clear', async (req, res) => {
-  const result = await callGoogleScript({ action: 'clear' });
+  const { category } = req.body;
+  
+  const result = await callGoogleScript({ 
+    action: 'clear',
+    category 
+  });
   
   if (result.success) {
-    io.emit('registrations-cleared');
+    if (category) {
+      io.emit(`registrations-cleared-${category}`);
+    } else {
+      io.emit('registrations-cleared');
+    }
   }
   
   res.json(result);
 });
 
-// Export - Now just redirect to Google Sheet
+// Export CSV
 app.get('/api/admin/export/csv', async (req, res) => {
-  const result = await callGoogleScript({ action: 'getAll' });
+  const category = req.query.category;
+  const result = await callGoogleScript({ action: 'getAll', category });
   
   if (!result.success) {
     return res.status(500).json(result);
@@ -192,11 +210,18 @@ app.get('/api/admin/export/csv', async (req, res) => {
   
   const data = result.data;
   const settingsResult = await callGoogleScript({ action: 'getSettings' });
-  const eventName = settingsResult.data?.event_name || 'event';
+  
+  let eventName = 'event';
+  if (category === 'science') {
+    eventName = settingsResult.data?.event_name_science || 'Science_Engineering';
+  } else if (category === 'business') {
+    eventName = settingsResult.data?.event_name_business || 'Business_Art';
+  }
+  
   const date = new Date().toISOString().split('T')[0];
   const filename = `${eventName.replace(/[^a-z0-9]/gi, '_')}_${date}.csv`;
   
-  const headers = ['ID', 'Timestamp', 'Name', 'Phone', 'Programme', 'Status', 'Remark', 'Time In'];
+  const headers = ['ID', 'Timestamp', 'Name', 'Phone', 'Programme', 'Category', 'Status', 'Remark', 'Time In'];
   const rows = [headers.join(',')];
   
   data.forEach(r => {
@@ -206,6 +231,7 @@ app.get('/api/admin/export/csv', async (req, res) => {
       `"${r.student_name}"`,
       `"${r.phone_number}"`,
       `"${r.programme}"`,
+      r.category,
       r.status,
       `"${r.remark || ''}"`,
       `"${r.time_in || ''}"`
@@ -217,11 +243,12 @@ app.get('/api/admin/export/csv', async (req, res) => {
   res.send(rows.join('\n'));
 });
 
-// QR Code
+// QR Code (with category)
 app.get('/api/qrcode', async (req, res) => {
   try {
+    const category = req.query.category || 'science';
     const baseUrl = getBaseUrl(req);
-    const regUrl = `${baseUrl}/register.html`;
+    const regUrl = `${baseUrl}/register.html?category=${category}`;
     
     const qrCode = await QRCode.toDataURL(regUrl, {
       width: 300,
@@ -229,7 +256,7 @@ app.get('/api/qrcode', async (req, res) => {
       color: { dark: '#000', light: '#fff' }
     });
     
-    res.json({ success: true, data: { qrCode, url: regUrl } });
+    res.json({ success: true, data: { qrCode, url: regUrl, category } });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -250,12 +277,19 @@ io.on('connection', (socket) => {
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║   🎉 Event Registration System (Google Sheets Edition)    ║');
+  console.log('║   🎉 Event Registration System (Multi-Category Edition)   ║');
   console.log('╠═══════════════════════════════════════════════════════════╣');
   console.log(`║   Port: ${PORT}                                              ║`);
-  console.log('║   Dashboard:    /                                         ║');
-  console.log('║   Registration: /register.html                            ║');
-  console.log('║   Admin Panel:  /admin.html                               ║');
+  console.log('║                                                           ║');
+  console.log('║   SCIENCE/ENGINEERING:                                    ║');
+  console.log('║   Dashboard: /?category=science                           ║');
+  console.log('║   Register:  /register.html?category=science              ║');
+  console.log('║                                                           ║');
+  console.log('║   BUSINESS/ART:                                           ║');
+  console.log('║   Dashboard: /?category=business                          ║');
+  console.log('║   Register:  /register.html?category=business             ║');
+  console.log('║                                                           ║');
+  console.log('║   Admin: /admin.html                                      ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log('');
 });
