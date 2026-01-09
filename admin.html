@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="header">
+    <h1>⚙️ Admin Panel</h1>
+    <p>System Configuration 系统配置</p>
+  </header>
+
+  <main class="container">
+    <a href="/" class="btn" style="margin-bottom:20px;">← Dashboard</a>
+
+    <!-- Event Settings -->
+    <section class="card">
+      <h2>📋 Event Settings 活动设置</h2>
+      
+      <div class="form-group">
+        <label>Event Name 活动名称</label>
+        <input type="text" id="eventName">
+        <button class="btn btn-primary" onclick="saveEventName()">Save 保存</button>
+      </div>
+
+      <div class="form-group">
+        <label>Max Capacity 最大容量</label>
+        <input type="number" id="maxCapacity" min="1">
+        <button class="btn btn-primary" onclick="saveCapacity()">Save 保存</button>
+      </div>
+    </section>
+
+    <!-- Programmes -->
+    <section class="card">
+      <h2>📚 Programmes 课程</h2>
+      <ul id="programmeList" class="list"></ul>
+      <div class="form-row">
+        <input type="text" id="newProgramme" placeholder="New programme 新课程">
+        <button class="btn btn-success" onclick="addProgramme()">+ Add</button>
+      </div>
+    </section>
+
+    <!-- Data -->
+    <section class="card">
+      <h2>💾 Data 数据</h2>
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="exportCSV()">📥 CSV</button>
+        <button class="btn btn-primary" onclick="exportJSON()">📥 JSON</button>
+        <button class="btn btn-danger" onclick="showClearModal()">🗑️ Clear All</button>
+      </div>
+      <p class="help-text">⚠️ Clear All will delete all registration data permanently!</p>
+    </section>
+  </main>
+
+  <!-- Clear Modal -->
+  <div class="modal-backdrop" id="clearModal">
+    <div class="modal">
+      <h3>⚠️ Clear All Data?</h3>
+      <p>Type <strong>DELETE</strong> to confirm:</p>
+      <input type="text" id="confirmText" placeholder="DELETE">
+      <div class="modal-buttons">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmClear()">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
