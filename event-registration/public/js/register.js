@@ -1,19 +1,54 @@
-document.addEventListener('DOMContentLoaded', init);
+let currentCategory = 'science';
 
-async function init() {
-  await loadSettings();
+// Get category from URL
+function getCategoryFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('category') || 'science';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  currentCategory = getCategoryFromUrl();
+  applyTheme();
+  loadSettings();
   setupForm();
+});
+
+function applyTheme() {
+  const body = document.getElementById('body');
+  const indicator = document.getElementById('categoryIndicator');
+  
+  if (currentCategory === 'science') {
+    body.classList.add('science-theme');
+    indicator.textContent = '🔬 Science & Engineering 理工科';
+  } else {
+    body.classList.add('business-theme');
+    indicator.textContent = '💼 Business & Art 商业与艺术';
+  }
 }
 
 async function loadSettings() {
   try {
     const res = await fetch('/api/settings');
     const json = await res.json();
+    
     if (json.success) {
-      document.getElementById('eventTitle').textContent = json.data.event_name || 'Event Registration';
+      // Set event name
+      let eventName;
+      let programmes;
       
+      if (currentCategory === 'science') {
+        eventName = json.data.event_name_science || 'Science & Engineering Fair';
+        programmes = json.data.programmes_science || [];
+      } else {
+        eventName = json.data.event_name_business || 'Business & Art Fair';
+        programmes = json.data.programmes_business || [];
+      }
+      
+      document.getElementById('eventTitle').textContent = eventName;
+      
+      // Populate programmes
       const select = document.getElementById('programme');
-      (json.data.programmes || []).forEach(p => {
+      programmes.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p;
         opt.textContent = p;
@@ -36,7 +71,8 @@ function setupForm() {
     const payload = {
       student_name: document.getElementById('studentName').value.trim(),
       phone_number: document.getElementById('phoneNumber').value.trim(),
-      programme: document.getElementById('programme').value
+      programme: document.getElementById('programme').value,
+      category: currentCategory
     };
 
     try {
