@@ -205,16 +205,8 @@ function printQR() {
 
 function formatTime(s) {
   if (!s) return '-';
-  return new Date(s).toLocaleString('en-MY', { 
-    timeZone: 'Asia/Kuala_Lumpur',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit', 
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  });
+  // Time is already in Malaysia timezone from Google Sheets
+  return s;
 }
 
 function esc(s) {
@@ -238,4 +230,5 @@ function beep() {
   } catch (e) {}
 
 }
+
 
