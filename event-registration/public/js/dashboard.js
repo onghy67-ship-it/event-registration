@@ -1,4 +1,4 @@
-// Dashboard.js - Fixed Version
+// Dashboard.js - Updated with Course Stats
 
 const socket = io();
 let data = [];
@@ -23,7 +23,6 @@ window.onload = function() {
     currentCategory = urlCategory;
     showDashboard();
   } else {
-    // Show category selector
     document.getElementById('categorySelector').style.display = 'flex';
     document.getElementById('mainContent').style.display = 'none';
   }
@@ -33,17 +32,12 @@ window.onload = function() {
 function selectCategory(category) {
   console.log('Selected category:', category);
   currentCategory = category;
-  
-  // Update URL without reloading
   window.history.pushState({}, '', '?category=' + category);
-  
-  // Show dashboard
   showDashboard();
 }
 
 // Switch to different category
 function switchCategory() {
-  // Reload page without category
   window.location.href = '/';
 }
 
@@ -51,25 +45,22 @@ function switchCategory() {
 async function showDashboard() {
   console.log('Showing dashboard for:', currentCategory);
   
-  // Hide selector, show content
   document.getElementById('categorySelector').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
   
-  // Update header theme and badge
   const header = document.getElementById('header');
   const badge = document.getElementById('categoryBadge');
   
   if (currentCategory === 'science') {
     header.className = 'header science-theme';
     badge.className = 'category-badge category-science';
-    badge.textContent = '🔬 Science & Engineering';
+    badge.textContent = '🔬 Science & IT';
   } else {
     header.className = 'header business-theme';
     badge.className = 'category-badge category-business';
     badge.textContent = '💼 Business & Art';
   }
   
-  // Load data
   await loadConfig();
   await loadData();
   await loadQR();
@@ -83,13 +74,11 @@ async function loadConfig() {
   try {
     const res = await fetch('/api/settings');
     const json = await res.json();
-    console.log('Config response:', json);
     
     if (json.success) {
       config = json.data;
       statuses = config.statuses || [];
       
-      // Set event name based on category
       let eventName;
       if (currentCategory === 'science') {
         eventName = config.event_name_science || 'Science & Engineering Fair';
@@ -109,7 +98,6 @@ async function loadData() {
   try {
     const res = await fetch('/api/registrations?category=' + currentCategory);
     const json = await res.json();
-    console.log('Data response:', json);
     
     if (json.success) {
       data = json.data;
@@ -126,15 +114,14 @@ async function loadQR() {
   try {
     const res = await fetch('/api/qrcode?category=' + currentCategory);
     const json = await res.json();
-    console.log('QR response:', json);
     
     if (json.success) {
       document.getElementById('qrCodeImage').src = json.data.qrCode;
       document.getElementById('registrationUrl').textContent = json.data.url;
       
       const title = currentCategory === 'science' 
-        ? 'Scan to Register (Science) 扫码登记 (理工科)'
-        : 'Scan to Register (Business) 扫码登记 (商业与艺术)';
+        ? 'Scan to Register (Science & IT) 扫码登记 (理工科)'
+        : 'Scan to Register (Business & Art) 扫码登记 (商科)';
       document.getElementById('qrTitle').textContent = title;
     }
   } catch (e) { 
@@ -191,17 +178,79 @@ function render(list) {
   updateStats();
 }
 
-// Update statistics
+// Update statistics - NEW LOGIC
 function updateStats() {
-  const total = data ? data.length : 0;
-  const waiting = data ? data.filter(function(r) { return r.status === 'waiting'; }).length : 0;
-  const inside = data ? data.filter(function(r) { return r.status === 'inside'; }).length : 0;
-  const max = parseInt(config.max_capacity) || 50;
-
-  document.getElementById('totalCount').textContent = total;
-  document.getElementById('waitingCount').textContent = waiting;
-  document.getElementById('insideCount').textContent = inside;
-  document.getElementById('availableSlots').textContent = Math.max(0, max - inside);
+  if (!data) data = [];
+  
+  // Count waiting (includes both "waiting" and "urgent" status)
+  const waitingList = data.filter(function(r) { 
+    return r.status === 'waiting' || r.status === 'urgent'; 
+  });
+  
+  const insideList = data.filter(function(r) { 
+    return r.status === 'inside'; 
+  });
+  
+  // Update simple counts
+  document.getElementById('waitingCount').textContent = waitingList.length;
+  document.getElementById('insideCount').textContent = insideList.length;
+  
+  // Calculate course waiting counts
+  const courseCounts = {};
+  for (let i = 0; i < waitingList.length; i++) {
+    const programme = waitingList[i].programme;
+    if (programme) {
+      if (!courseCounts[programme]) {
+        courseCounts[programme] = 0;
+      }
+      courseCounts[programme]++;
+    }
+  }
+  
+  // Convert to array and sort by count (descending)
+  const sortedCourses = [];
+  for (const course in courseCounts) {
+    sortedCourses.push({
+      name: course,
+      count: courseCounts[course]
+    });
+  }
+  sortedCourses.sort(function(a, b) {
+    return b.count - a.count;
+  });
+  
+  // Update Top 3 Courses
+  const topCoursesContent = document.getElementById('topCoursesContent');
+  if (sortedCourses.length === 0) {
+    topCoursesContent.innerHTML = '<div class="no-waiting">No one waiting 暂无等候</div>';
+  } else {
+    let html = '';
+    const top3 = sortedCourses.slice(0, 3);
+    for (let i = 0; i < top3.length; i++) {
+      const course = top3[i];
+      const rankClass = 'rank-' + (i + 1);
+      html += '<div class="top-course-item">';
+      html += '<span class="top-course-rank ' + rankClass + '">' + (i + 1) + '</span>';
+      html += '<span class="top-course-name" title="' + esc(course.name) + '">' + esc(course.name) + '</span>';
+      html += '<span class="top-course-count">' + course.count + '</span>';
+      html += '</div>';
+    }
+    topCoursesContent.innerHTML = html;
+  }
+  
+  // Update Longest Queue
+  const longestQueueCount = document.getElementById('longestQueueCount');
+  const longestQueueName = document.getElementById('longestQueueName');
+  
+  if (sortedCourses.length === 0) {
+    longestQueueCount.textContent = '0';
+    longestQueueName.textContent = 'No queue 无队伍';
+  } else {
+    const longest = sortedCourses[0];
+    longestQueueCount.textContent = longest.count;
+    longestQueueName.textContent = longest.name;
+    longestQueueName.title = longest.name; // Tooltip for full name
+  }
 }
 
 // Update status via API
@@ -345,8 +394,8 @@ function printQR() {
   const img = document.getElementById('qrCodeImage').src;
   const url = document.getElementById('registrationUrl').textContent;
   const title = currentCategory === 'science' 
-    ? 'Science & Engineering 理工科' 
-    : 'Business & Art 商业与艺术';
+    ? 'Science & IT 理工科' 
+    : 'Business & Art 商科';
   
   const w = window.open();
   w.document.write('<html><body style="text-align:center;padding:50px;">');
@@ -358,13 +407,13 @@ function printQR() {
   w.document.write('</body></html>');
 }
 
-// Format time (just return as-is since Google Sheets formats it)
+// Format time
 function formatTime(s) {
   if (!s) return '-';
   return s;
 }
 
-// Escape HTML to prevent XSS
+// Escape HTML
 function esc(s) {
   if (!s) return '';
   return String(s)
@@ -386,7 +435,5 @@ function beep() {
     g.gain.value = 0.1;
     o.start();
     o.stop(c.currentTime + 0.1);
-  } catch (e) {
-    // Ignore audio errors
-  }
+  } catch (e) {}
 }
