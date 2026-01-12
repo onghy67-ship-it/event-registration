@@ -178,11 +178,12 @@ th { background: var(--dark); color: white; font-weight: 600; }
 tr:hover { background: #f5f5f5; }
 
 /* Status colors */
-tr.status-registered { background: #f8f9fa; }
-tr.status-waiting { background: #fff8e6; }
-tr.status-inside { background: #e8f5e9; }
-tr.status-ended { background: #e3f2fd; }
-tr.status-exited { background: #eeeeee; }
+tr.status-registered { background: #f8f9fa; }  /* White/Light gray */
+tr.status-waiting { background: #fff3cd; }     /* Yellow */
+tr.status-inside { background: #cce5ff; }      /* Blue */
+tr.status-ended { background: #d4edda; }       /* Green */
+tr.status-urgent { background: #f8d7da; }      /* Red */
+tr.status-noanswer { background: #e2e3e5; }    /* Gray */
 
 .status-select {
   padding: 6px 10px;
@@ -287,4 +288,5 @@ tr.status-exited { background: #eeeeee; }
   .search-input { width: 100%; }
   .qr-content { flex-direction: column; }
   .qr-info { text-align: center; }
+
 }
