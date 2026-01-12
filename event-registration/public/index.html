@@ -19,8 +19,8 @@
       color: #1565c0;
     }
     .category-business {
-      background: #fff3e0;
-      color: #e65100;
+      background: #f3e5f5;
+      color: #7b1fa2;
     }
     .category-selector {
       display: flex;
@@ -46,16 +46,144 @@
       color: #1565c0;
     }
     .category-btn.active-business {
-      border-color: #e65100;
-      background: #fff3e0;
-      color: #e65100;
+      border-color: #7b1fa2;
+      background: #f3e5f5;
+      color: #7b1fa2;
     }
     .header.science-theme {
-      background: linear-gradient(135deg, #1565c0, #42a5f5);
+      background: linear-gradient(135deg, #004d40, #00897b);
     }
     .header.business-theme {
-      background: linear-gradient(135deg, #e65100, #ff9800);
+      background: linear-gradient(135deg, #4a148c, #7b1fa2);
     }
+    
+    /* New Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.5fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 900px) {
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    @media (max-width: 500px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Top 3 Courses Card */
+    .top-courses-card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .top-courses-card h4 {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .top-course-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .top-course-item:last-child {
+      border-bottom: none;
+    }
+    
+    .top-course-rank {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #4a90d9;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .top-course-rank.rank-1 { background: #ffd700; color: #333; }
+    .top-course-rank.rank-2 { background: #c0c0c0; color: #333; }
+    .top-course-rank.rank-3 { background: #cd7f32; color: white; }
+    
+    .top-course-name {
+      flex: 1;
+      font-size: 0.9rem;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .top-course-count {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #e67e22;
+      margin-left: 10px;
+    }
+    
+    .no-waiting {
+      color: #999;
+      font-style: italic;
+      font-size: 0.9rem;
+      padding: 10px 0;
+    }
+    
+    /* Longest Queue Card */
+    .longest-queue-card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    .longest-queue-card h4 {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .longest-queue-count {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #e74c3c;
+    }
+    
+    .longest-queue-name {
+      font-size: 0.85rem;
+      color: #333;
+      margin-top: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Updated Status Colors */
+    tr.status-registered { background: #f8f9fa; }
+    tr.status-waiting { background: #fff3cd; }
+    tr.status-inside { background: #cce5ff; }
+    tr.status-ended { background: #d4edda; }
+    tr.status-urgent { background: #f8d7da; }
+    tr.status-noanswer { background: #e2e3e5; }
   </style>
 </head>
 <body>
@@ -69,7 +197,7 @@
   </header>
 
   <main class="container">
-    <!-- Category Selector (shown if no category in URL) -->
+    <!-- Category Selector -->
     <div class="category-selector" id="categorySelector">
       <button class="category-btn" onclick="selectCategory('science')">
         🔬 Science & Engineering<br>理工科
@@ -79,25 +207,35 @@
       </button>
     </div>
 
-    <!-- Main Content (hidden until category selected) -->
+    <!-- Main Content -->
     <div id="mainContent" style="display: none;">
       <!-- Stats -->
       <section class="stats-grid">
-        <div class="stat-card total">
-          <div class="stat-number" id="totalCount">0</div>
-          <div class="stat-label">Total 总数</div>
+        <!-- Top 3 Waiting Courses -->
+        <div class="top-courses-card">
+          <h4>🔥 Top 3 Waiting Courses 热门等候课程</h4>
+          <div id="topCoursesContent">
+            <div class="no-waiting">No one waiting 暂无等候</div>
+          </div>
         </div>
+        
+        <!-- Waiting Count -->
         <div class="stat-card waiting">
           <div class="stat-number" id="waitingCount">0</div>
           <div class="stat-label">Waiting 等候</div>
         </div>
+        
+        <!-- Inside Count -->
         <div class="stat-card inside">
           <div class="stat-number" id="insideCount">0</div>
           <div class="stat-label">Inside 进行中</div>
         </div>
-        <div class="stat-card available">
-          <div class="stat-number" id="availableSlots">0</div>
-          <div class="stat-label">Available 剩余</div>
+        
+        <!-- Longest Queue -->
+        <div class="longest-queue-card">
+          <h4>⏳ Longest Queue 最长队伍</h4>
+          <div class="longest-queue-count" id="longestQueueCount">0</div>
+          <div class="longest-queue-name" id="longestQueueName">-</div>
         </div>
       </section>
 
@@ -124,7 +262,7 @@
         <div class="table-header">
           <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search...">
           <div class="table-actions">
-            <button class="btn" onclick="switchCategory()">🔄 Switch Category</button>
+            <button class="btn" onclick="switchCategory()">🔄 Switch</button>
             <button class="btn" onclick="refreshData()">🔄 Refresh</button>
             <button class="btn btn-primary" onclick="exportCSV()">📥 Export</button>
             <a href="/admin.html" class="btn">⚙️ Admin</a>
