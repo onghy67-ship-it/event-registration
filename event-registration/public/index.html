@@ -40,16 +40,6 @@
     .category-btn:hover {
       border-color: #4a90d9;
     }
-    .category-btn.active-science {
-      border-color: #1565c0;
-      background: #e3f2fd;
-      color: #1565c0;
-    }
-    .category-btn.active-business {
-      border-color: #7b1fa2;
-      background: #f3e5f5;
-      color: #7b1fa2;
-    }
     .header.science-theme {
       background: linear-gradient(135deg, #004d40, #00897b);
     }
@@ -57,7 +47,7 @@
       background: linear-gradient(135deg, #4a148c, #7b1fa2);
     }
     
-    /* New Stats Grid */
+    /* Stats Grid */
     .stats-grid {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1.5fr;
@@ -66,18 +56,14 @@
     }
     
     @media (max-width: 900px) {
-      .stats-grid {
-        grid-template-columns: 1fr 1fr;
-      }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
     }
     
     @media (max-width: 500px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
+      .stats-grid { grid-template-columns: 1fr; }
     }
     
-    /* Top 3 Courses Card */
+    /* Top Courses Card */
     .top-courses-card {
       background: white;
       border-radius: 12px;
@@ -100,9 +86,7 @@
       border-bottom: 1px solid #eee;
     }
     
-    .top-course-item:last-child {
-      border-bottom: none;
-    }
+    .top-course-item:last-child { border-bottom: none; }
     
     .top-course-rank {
       width: 24px;
@@ -159,7 +143,6 @@
       color: #666;
       margin-bottom: 8px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
     
     .longest-queue-count {
@@ -177,16 +160,134 @@
       text-overflow: ellipsis;
     }
     
-    /* Updated Status Colors */
+    /* Status Colors */
     tr.status-registered { background: #f8f9fa; }
     tr.status-waiting { background: #fff3cd; }
     tr.status-inside { background: #cce5ff; }
     tr.status-ended { background: #d4edda; }
     tr.status-urgent { background: #f8d7da; }
     tr.status-noanswer { background: #e2e3e5; }
+    
+    /* Password Modal */
+    .password-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+    
+    .password-overlay.hidden {
+      display: none;
+    }
+    
+    .password-box {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .password-box h2 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .password-box p {
+      color: #666;
+      margin-bottom: 25px;
+    }
+    
+    .password-input {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1rem;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      text-align: center;
+      letter-spacing: 3px;
+      margin-bottom: 15px;
+    }
+    
+    .password-input:focus {
+      outline: none;
+      border-color: #4a90d9;
+    }
+    
+    .password-input.error {
+      border-color: #e74c3c;
+      animation: shake 0.5s;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-10px); }
+      40%, 80% { transform: translateX(10px); }
+    }
+    
+    .password-error {
+      color: #e74c3c;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+      display: none;
+    }
+    
+    .password-error.show {
+      display: block;
+    }
+    
+    .password-submit {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1rem;
+      background: #4a90d9;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .password-submit:hover {
+      background: #357abd;
+    }
+    
+    .password-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
+  
+  <!-- Password Protection Modal -->
+  <div class="password-overlay" id="passwordOverlay">
+    <div class="password-box">
+      <div class="password-icon">🔐</div>
+      <h2>Staff Access Only</h2>
+      <p>Enter password to access dashboard<br>请输入密码以访问仪表板</p>
+      <input type="password" 
+             class="password-input" 
+             id="passwordInput" 
+             placeholder="Password 密码"
+             onkeypress="if(event.key==='Enter')checkPassword()">
+      <div class="password-error" id="passwordError">
+        Incorrect password 密码错误
+      </div>
+      <button class="password-submit" onclick="checkPassword()">
+        Enter 进入
+      </button>
+    </div>
+  </div>
+
   <header class="header" id="header">
     <h1>
       <span id="eventName">Event Registration</span>
@@ -198,12 +299,12 @@
 
   <main class="container">
     <!-- Category Selector -->
-    <div class="category-selector" id="categorySelector">
+    <div class="category-selector" id="categorySelector" style="display: none;">
       <button class="category-btn" onclick="selectCategory('science')">
-        🔬 Science & Engineering<br>理工科
+        🔬 Science & IT<br>理工科
       </button>
       <button class="category-btn" onclick="selectCategory('business')">
-        💼 Business & Art<br>商业与艺术
+        💼 Business & Art<br>商科
       </button>
     </div>
 
@@ -213,7 +314,7 @@
       <section class="stats-grid">
         <!-- Top 3 Waiting Courses -->
         <div class="top-courses-card">
-          <h4>Top 3 Waiting Courses 热门等候课程</h4>
+          <h4>🔥 Top 3 Waiting 热门等候</h4>
           <div id="topCoursesContent">
             <div class="no-waiting">No one waiting 暂无等候</div>
           </div>
@@ -233,7 +334,7 @@
         
         <!-- Longest Queue -->
         <div class="longest-queue-card">
-          <h4>Longest Queue 最长队伍</h4>
+          <h4>⏳ Longest Queue 最长队伍</h4>
           <div class="longest-queue-count" id="longestQueueCount">0</div>
           <div class="longest-queue-name" id="longestQueueName">-</div>
         </div>
@@ -266,6 +367,7 @@
             <button class="btn" onclick="refreshData()">🔄 Refresh</button>
             <button class="btn btn-primary" onclick="exportCSV()">📥 Export</button>
             <a href="/admin.html" class="btn">⚙️ Admin</a>
+            <button class="btn" onclick="logout()" title="Logout">🚪</button>
           </div>
         </div>
 
@@ -316,4 +418,3 @@
   <script src="js/dashboard.js"></script>
 </body>
 </html>
-
