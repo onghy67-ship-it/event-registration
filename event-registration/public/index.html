@@ -14,14 +14,9 @@
       font-weight: 600;
       margin-left: 10px;
     }
-    .category-science {
-      background: #e3f2fd;
-      color: #1565c0;
-    }
-    .category-business {
-      background: #f3e5f5;
-      color: #7b1fa2;
-    }
+    .category-science { background: #e3f2fd; color: #1565c0; }
+    .category-business { background: #f3e5f5; color: #7b1fa2; }
+    
     .category-selector {
       display: flex;
       gap: 10px;
@@ -29,25 +24,20 @@
       margin: 20px 0;
     }
     .category-btn {
-      padding: 12px 30px;
+      padding: 15px 40px;
       border: 2px solid #ddd;
-      border-radius: 10px;
+      border-radius: 12px;
       background: white;
       cursor: pointer;
       font-size: 1rem;
       transition: all 0.2s;
     }
-    .category-btn:hover {
-      border-color: #4a90d9;
-    }
-    .header.science-theme {
-      background: linear-gradient(135deg, #004d40, #00897b);
-    }
-    .header.business-theme {
-      background: linear-gradient(135deg, #4a148c, #7b1fa2);
-    }
+    .category-btn:hover { border-color: #4a90d9; transform: translateY(-2px); }
     
-    /* Stats Grid */
+    .header.science-theme { background: linear-gradient(135deg, #004d40, #00897b); }
+    .header.business-theme { background: linear-gradient(135deg, #4a148c, #7b1fa2); }
+    
+    /* Stats Grid - 4 columns */
     .stats-grid {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1.5fr;
@@ -55,13 +45,8 @@
       margin-bottom: 20px;
     }
     
-    @media (max-width: 900px) {
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-    }
-    
-    @media (max-width: 500px) {
-      .stats-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 500px) { .stats-grid { grid-template-columns: 1fr; } }
     
     /* Top Courses Card */
     .top-courses-card {
@@ -70,236 +55,146 @@
       padding: 15px 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    
     .top-courses-card h4 {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #666;
       margin-bottom: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
-    
     .top-course-item {
       display: flex;
       align-items: center;
-      padding: 8px 0;
+      padding: 6px 0;
       border-bottom: 1px solid #eee;
     }
-    
     .top-course-item:last-child { border-bottom: none; }
-    
     .top-course-rank {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      background: #4a90d9;
-      color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: bold;
-      margin-right: 10px;
+      margin-right: 8px;
     }
-    
-    .top-course-rank.rank-1 { background: #ffd700; color: #333; }
-    .top-course-rank.rank-2 { background: #c0c0c0; color: #333; }
-    .top-course-rank.rank-3 { background: #cd7f32; color: white; }
-    
+    .rank-1 { background: #ffd700; color: #333; }
+    .rank-2 { background: #c0c0c0; color: #333; }
+    .rank-3 { background: #cd7f32; color: white; }
     .top-course-name {
       flex: 1;
-      font-size: 0.9rem;
-      color: #333;
+      font-size: 0.85rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
     .top-course-count {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       color: #e67e22;
-      margin-left: 10px;
+      margin-left: 8px;
     }
+    .no-waiting { color: #999; font-style: italic; font-size: 0.9rem; padding: 10px 0; }
     
-    .no-waiting {
-      color: #999;
-      font-style: italic;
-      font-size: 0.9rem;
-      padding: 10px 0;
-    }
-    
-    /* Longest Queue Card */
-    .longest-queue-card {
+    /* Longest Wait Card */
+    .longest-wait-card {
       background: white;
       border-radius: 12px;
-      padding: 15px 20px;
+      padding: 15px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       text-align: center;
     }
-    
-    .longest-queue-card h4 {
-      font-size: 0.85rem;
+    .longest-wait-card h4 {
+      font-size: 0.8rem;
       color: #666;
-      margin-bottom: 8px;
+      margin-bottom: 5px;
       text-transform: uppercase;
     }
-    
-    .longest-queue-count {
-      font-size: 2.5rem;
+    .longest-wait-number {
+      font-size: 2rem;
       font-weight: bold;
       color: #e74c3c;
     }
-    
-    .longest-queue-name {
-      font-size: 0.85rem;
+    .longest-wait-course {
+      font-size: 0.8rem;
       color: #333;
       margin-top: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
-    /* Status Colors */
-    tr.status-registered { background: #f8f9fa; }
-    tr.status-waiting { background: #fff3cd; }
-    tr.status-inside { background: #cce5ff; }
-    tr.status-ended { background: #d4edda; }
-    tr.status-urgent { background: #f8d7da; }
-    tr.status-noanswer { background: #e2e3e5; }
-    
-    /* Password Modal */
-    .password-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-    }
-    
-    .password-overlay.hidden {
-      display: none;
-    }
-    
-    .password-box {
-      background: white;
-      padding: 40px;
-      border-radius: 16px;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    
-    .password-box h2 {
-      margin-bottom: 10px;
-      color: #333;
-    }
-    
-    .password-box p {
-      color: #666;
-      margin-bottom: 25px;
-    }
-    
-    .password-input {
-      width: 100%;
-      padding: 15px;
-      font-size: 1.1rem;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      text-align: center;
-      letter-spacing: 3px;
-      margin-bottom: 15px;
-    }
-    
-    .password-input:focus {
-      outline: none;
-      border-color: #4a90d9;
-    }
-    
-    .password-input.error {
-      border-color: #e74c3c;
-      animation: shake 0.5s;
-    }
-    
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-10px); }
-      40%, 80% { transform: translateX(10px); }
-    }
-    
-    .password-error {
-      color: #e74c3c;
+    .no-long-wait {
+      color: #28a745;
       font-size: 0.9rem;
-      margin-bottom: 15px;
-      display: none;
     }
     
-    .password-error.show {
-      display: block;
-    }
+    /* Updated Status Colors */
+    tr.status-waiting { background: #fff3cd; }    /* Orange/Yellow */
+    tr.status-consulting { background: #cce5ff; } /* Blue */
+    tr.status-inside { background: #ffeeba; }     /* Yellow */
+    tr.status-ended { background: #d4edda; }      /* Green */
+    tr.status-urgent { background: #f8d7da; }     /* Red */
+    tr.status-noanswer { background: #e2e3e5; }   /* Gray */
     
-    .password-submit {
-      width: 100%;
-      padding: 15px;
-      font-size: 1.1rem;
-      background: #4a90d9;
-      color: white;
-      border: none;
-      border-radius: 10px;
+    /* Filter Dropdown */
+    .filter-select {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      min-width: 250px;
       cursor: pointer;
-      transition: background 0.2s;
+    }
+    .filter-select:focus { outline: none; border-color: #4a90d9; }
+    
+    /* Sync indicator */
+    .sync-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .sync-indicator.syncing {
+      background: #ffc107;
+      animation: pulse 1s infinite;
+    }
+    .sync-indicator.synced { background: #28a745; }
+    .sync-indicator.error { background: #dc3545; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
     
-    .password-submit:hover {
-      background: #357abd;
-    }
-    
-    .password-icon {
-      font-size: 3rem;
-      margin-bottom: 15px;
+    /* Remark input with save indicator */
+    .remark-wrapper { position: relative; }
+    .remark-saving {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.7rem;
+      color: #666;
     }
   </style>
 </head>
 <body>
-  
-  <!-- Password Protection Modal -->
-  <div class="password-overlay" id="passwordOverlay">
-    <div class="password-box">
-      <div class="password-icon">🔐</div>
-      <h2>Staff Access Only</h2>
-      <p>Enter password to access dashboard<br>请输入密码以访问仪表板</p>
-      <input type="password" 
-             class="password-input" 
-             id="passwordInput" 
-             placeholder="Password 密码"
-             onkeypress="if(event.key==='Enter')checkPassword()">
-      <div class="password-error" id="passwordError">
-        Incorrect password 密码错误
-      </div>
-      <button class="password-submit" onclick="checkPassword()">
-        Enter 进入
-      </button>
-    </div>
-  </div>
-
   <header class="header" id="header">
     <h1>
       <span id="eventName">Event Registration</span>
       <span class="category-badge" id="categoryBadge"></span>
     </h1>
     <p>Registration Dashboard 登记仪表板</p>
-    <span class="status-badge" id="connectionStatus">🟢 Connected</span>
+    <span class="status-badge" id="connectionStatus">
+      <span class="sync-indicator synced"></span> Connected
+    </span>
   </header>
 
   <main class="container">
     <!-- Category Selector -->
-    <div class="category-selector" id="categorySelector" style="display: none;">
+    <div class="category-selector" id="categorySelector">
       <button class="category-btn" onclick="selectCategory('science')">
         🔬 Science & IT<br>理工科
       </button>
@@ -312,11 +207,11 @@
     <div id="mainContent" style="display: none;">
       <!-- Stats -->
       <section class="stats-grid">
-        <!-- Top 3 Waiting Courses -->
+        <!-- Top 3 Waiting -->
         <div class="top-courses-card">
           <h4>🔥 Top 3 Waiting 热门等候</h4>
           <div id="topCoursesContent">
-            <div class="no-waiting">No one waiting 暂无等候</div>
+            <div class="no-waiting">No one waiting</div>
           </div>
         </div>
         
@@ -329,14 +224,15 @@
         <!-- Inside Count -->
         <div class="stat-card inside">
           <div class="stat-number" id="insideCount">0</div>
-          <div class="stat-label">Inside 进行中</div>
+          <div class="stat-label">Inside 里面</div>
         </div>
         
-        <!-- Longest Queue -->
-        <div class="longest-queue-card">
-          <h4>⏳ Longest Queue 最长队伍</h4>
-          <div class="longest-queue-count" id="longestQueueCount">0</div>
-          <div class="longest-queue-name" id="longestQueueName">-</div>
+        <!-- Longest Wait -->
+        <div class="longest-wait-card">
+          <h4>⏰ Longest Wait 最久等候</h4>
+          <div id="longestWaitContent">
+            <div class="no-long-wait">✓ All good</div>
+          </div>
         </div>
       </section>
 
@@ -361,13 +257,15 @@
       <!-- Table -->
       <section class="card table-section">
         <div class="table-header">
-          <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search...">
+          <div class="filter-wrapper">
+            <select id="filterSelect" class="filter-select" onchange="applyFilter()">
+              <option value="">All Programmes 所有课程</option>
+            </select>
+          </div>
           <div class="table-actions">
             <button class="btn" onclick="switchCategory()">🔄 Switch</button>
             <button class="btn" onclick="refreshData()">🔄 Refresh</button>
-            <button class="btn btn-primary" onclick="exportCSV()">📥 Export</button>
             <a href="/admin.html" class="btn">⚙️ Admin</a>
-            <button class="btn" onclick="logout()" title="Logout">🚪</button>
           </div>
         </div>
 
@@ -383,7 +281,6 @@
                 <th>Status 状态</th>
                 <th>Remark 备注</th>
                 <th>Time In</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -401,18 +298,6 @@
       </section>
     </div>
   </main>
-
-  <!-- Delete Modal -->
-  <div class="modal-backdrop" id="deleteModal">
-    <div class="modal">
-      <h3>Delete Registration?</h3>
-      <p>This action cannot be undone.</p>
-      <div class="modal-buttons">
-        <button class="btn" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-danger" id="confirmDelete">Delete</button>
-      </div>
-    </div>
-  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/dashboard.js"></script>
