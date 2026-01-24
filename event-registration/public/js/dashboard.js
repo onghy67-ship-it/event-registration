@@ -168,16 +168,16 @@ function applyFilter() {
 // =====================
 
 function getSortPriority(status) {
-  // Priority: Urgent > Waiting/Inside > Consulting > Ended/NoAnswer
+  // Priority: Urgent > Waiting > Inside > Consulting > Ended/NoAnswer
   const priorities = {
     'urgent': 1,
     'waiting': 2,
-    'inside': 2,
-    'consulting': 3,
-    'ended': 4,
-    'noanswer': 4
+    'inside': 3,
+    'consulting': 4,
+    'ended': 5,
+    'noanswer': 5
   };
-  return priorities[status] || 5;
+  return priorities[status] || 6;
 }
 
 function sortData(list) {
@@ -266,20 +266,20 @@ function render() {
 function updateStats() {
   if (!data) data = [];
   
-  // Waiting = 'waiting' + 'urgent'
+  // Waiting count = 'urgent' + 'waiting'
   const waitingList = data.filter(function(r) { 
     return r.status === 'waiting' || r.status === 'urgent'; 
   });
   
-  // Inside = 'consulting' + 'inside'
+  // Inside count = 'inside' + 'consulting'
   const insideList = data.filter(function(r) { 
-    return r.status === 'consulting' || r.status === 'inside'; 
+    return r.status === 'inside' || r.status === 'consulting'; 
   });
   
   document.getElementById('waitingCount').textContent = waitingList.length;
   document.getElementById('insideCount').textContent = insideList.length;
   
-  // Calculate course waiting counts
+  // Calculate course waiting counts (for Top 3 - based on waiting + urgent)
   const courseCounts = {};
   waitingList.forEach(function(r) {
     if (r.programme) {
@@ -307,7 +307,7 @@ function updateStats() {
     topContent.innerHTML = html;
   }
   
-  // Update Longest Wait
+  // Update Longest Wait (based on waiting + urgent only)
   updateLongestWait(waitingList);
 }
 
@@ -570,3 +570,4 @@ function beep() {
     o.start(); o.stop(c.currentTime + 0.1);
   } catch (e) {}
 }
+
