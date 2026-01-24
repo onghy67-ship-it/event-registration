@@ -1,26 +1,38 @@
-// Admin.js - With Password Protection
+// Admin.js v3 - Password protected, with delete functionality
 
 let config = {};
 let programmesScience = [];
 let programmesBusiness = [];
 let clearCategory = null;
-let correctPassword = 'openday2024';
+let correctPassword = 'xmumsr010';
+let records = [];
 
 // =====================
-// PASSWORD PROTECTION
+// PASSWORD
 // =====================
 
 function isAuthenticated() {
-  return sessionStorage.getItem('dashboard_auth') === 'true';
+  return sessionStorage.getItem('admin_auth') === 'true';
 }
 
 function setAuthenticated() {
-  sessionStorage.setItem('dashboard_auth', 'true');
+  sessionStorage.setItem('admin_auth', 'true');
 }
 
 function logout() {
-  sessionStorage.removeItem('dashboard_auth');
+  sessionStorage.removeItem('admin_auth');
   location.reload();
+}
+
+async function loadPassword() {
+  try {
+    const res = await fetch('/api/settings');
+    const json = await res.json();
+    
+    if (json.success && json.data && json.data.dashboard_password) {
+      correctPassword = json.data.dashboard_password;
+    }
+  } catch (e) {}
 }
 
 function checkPassword() {
@@ -32,6 +44,7 @@ function checkPassword() {
     document.getElementById('passwordOverlay').classList.add('hidden');
     document.getElementById('mainContent').style.display = 'block';
     loadSettings();
+    loadRecords();
   } else {
     input.classList.add('error');
     error.classList.add('show');
@@ -40,23 +53,8 @@ function checkPassword() {
   }
 }
 
-async function loadPassword() {
-  try {
-    const res = await fetch('/api/settings');
-    const json = await res.json();
-    
-    if (json.success && json.data && json.data.dashboard_password) {
-      correctPassword = json.data.dashboard_password;
-    } else if (json.data && json.data.dashboard_password) {
-      correctPassword = json.data.dashboard_password;
-    }
-  } catch (e) {
-    console.log('Using default password');
-  }
-}
-
 // =====================
-// INITIALIZATION
+// INIT
 // =====================
 
 window.onload = async function() {
@@ -66,10 +64,15 @@ window.onload = async function() {
     document.getElementById('passwordOverlay').classList.add('hidden');
     document.getElementById('mainContent').style.display = 'block';
     loadSettings();
+    loadRecords();
   } else {
     document.getElementById('passwordInput').focus();
   }
 };
+
+// =====================
+// SETTINGS
+// =====================
 
 async function loadSettings() {
   try {
@@ -79,31 +82,19 @@ async function loadSettings() {
     if (json.success) {
       config = json.data;
       
-      // Science
       document.getElementById('eventNameScience').value = config.event_name_science || '';
       programmesScience = config.programmes_science || [];
-      if (typeof programmesScience === 'string') {
-        programmesScience = JSON.parse(programmesScience);
-      }
+      if (typeof programmesScience === 'string') programmesScience = JSON.parse(programmesScience);
       renderProgrammes('science');
       
-      // Business
       document.getElementById('eventNameBusiness').value = config.event_name_business || '';
       programmesBusiness = config.programmes_business || [];
-      if (typeof programmesBusiness === 'string') {
-        programmesBusiness = JSON.parse(programmesBusiness);
-      }
+      if (typeof programmesBusiness === 'string') programmesBusiness = JSON.parse(programmesBusiness);
       renderProgrammes('business');
       
-      // Shared
-      document.getElementById('maxCapacity').value = config.max_capacity || 50;
-      
-      // Password (show current)
       document.getElementById('dashboardPassword').value = config.dashboard_password || '';
     }
-  } catch (e) { 
-    console.error(e); 
-  }
+  } catch (e) { console.error(e); }
 }
 
 function renderProgrammes(category) {
@@ -142,7 +133,7 @@ async function savePassword() {
   });
   
   correctPassword = value;
-  alert('Password saved! New password: ' + value);
+  alert('Password saved!');
 }
 
 async function addProgramme(category) {
@@ -169,7 +160,7 @@ async function addProgramme(category) {
 }
 
 async function removeProgramme(category, index) {
-  if (!confirm('Remove?')) return;
+  if (!confirm('Remove this programme?')) return;
   
   const list = category === 'science' ? programmesScience : programmesBusiness;
   list.splice(index, 1);
@@ -184,6 +175,71 @@ async function removeProgramme(category, index) {
   renderProgrammes(category);
 }
 
+// =====================
+// RECORDS MANAGEMENT
+// =====================
+
+async function loadRecords() {
+  const category = document.getElementById('manageCategory').value;
+  
+  try {
+    const res = await fetch('/api/registrations?category=' + category);
+    const json = await res.json();
+    
+    if (json.success) {
+      records = json.data || [];
+      renderRecords();
+    }
+  } catch (e) { console.error(e); }
+}
+
+function renderRecords() {
+  const container = document.getElementById('recordsTable');
+  
+  if (records.length === 0) {
+    container.innerHTML = '<p>No records found</p>';
+    return;
+  }
+  
+  let html = '<table class="data-table"><thead><tr>';
+  html += '<th>#</th><th>Name</th><th>Phone</th><th>Programme</th><th>Status</th><th>Action</th>';
+  html += '</tr></thead><tbody>';
+  
+  records.forEach(function(r, i) {
+    html += '<tr>';
+    html += '<td>' + (records.length - i) + '</td>';
+    html += '<td>' + esc(r.student_name) + '</td>';
+    html += '<td>' + esc(r.phone_number) + '</td>';
+    html += '<td>' + esc(r.programme) + '</td>';
+    html += '<td>' + esc(r.status) + '</td>';
+    html += '<td><button class="delete-btn" onclick="deleteRecord(\'' + r.id + '\')">🗑️ Delete</button></td>';
+    html += '</tr>';
+  });
+  
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+async function deleteRecord(id) {
+  if (!confirm('Delete this record?')) return;
+  
+  try {
+    await fetch('/api/registrations/' + id, { method: 'DELETE' });
+    loadRecords();
+  } catch (e) {
+    alert('Failed to delete');
+  }
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// =====================
+// EXPORT & CLEAR
+// =====================
+
 function exportCSV(category) {
   window.location.href = '/api/admin/export/csv?category=' + category;
 }
@@ -193,7 +249,7 @@ function showClearModal(category) {
   const messages = {
     'science': 'Clear all SCIENCE data?',
     'business': 'Clear all BUSINESS data?',
-    'all': 'Clear ALL data from BOTH categories?'
+    'all': 'Clear ALL data?'
   };
   document.getElementById('clearMessage').textContent = messages[category] + ' Type DELETE:';
   document.getElementById('clearModal').classList.add('active');
@@ -219,4 +275,5 @@ async function confirmClear() {
   
   alert('Data cleared!');
   closeModal();
+  loadRecords();
 }
