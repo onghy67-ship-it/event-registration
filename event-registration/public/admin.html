@@ -6,7 +6,6 @@
   <title>Admin Panel</title>
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    /* Password Modal */
     .password-overlay {
       position: fixed;
       top: 0;
@@ -19,7 +18,6 @@
       justify-content: center;
       z-index: 10000;
     }
-    
     .password-overlay.hidden { display: none; }
     
     .password-box {
@@ -29,10 +27,8 @@
       text-align: center;
       max-width: 400px;
       width: 90%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    
-    .password-box h2 { margin-bottom: 10px; color: #333; }
+    .password-box h2 { margin-bottom: 10px; }
     .password-box p { color: #666; margin-bottom: 25px; }
     
     .password-input {
@@ -42,10 +38,8 @@
       border: 2px solid #ddd;
       border-radius: 10px;
       text-align: center;
-      letter-spacing: 3px;
       margin-bottom: 15px;
     }
-    
     .password-input:focus { outline: none; border-color: #4a90d9; }
     .password-input.error { border-color: #e74c3c; animation: shake 0.5s; }
     
@@ -55,7 +49,7 @@
       40%, 80% { transform: translateX(10px); }
     }
     
-    .password-error { color: #e74c3c; font-size: 0.9rem; margin-bottom: 15px; display: none; }
+    .password-error { color: #e74c3c; margin-bottom: 15px; display: none; }
     .password-error.show { display: block; }
     
     .password-submit {
@@ -68,25 +62,41 @@
       border-radius: 10px;
       cursor: pointer;
     }
-    
     .password-submit:hover { background: #357abd; }
+    
     .password-icon { font-size: 3rem; margin-bottom: 15px; }
     
     .category-section {
       border-left: 4px solid #ddd;
       padding-left: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
     .science-section { border-color: #00897b; }
     .business-section { border-color: #7b1fa2; }
-    
     .password-section { border-color: #e74c3c; }
     
-    .section-title {
-      font-size: 1rem;
-      margin-bottom: 15px;
-      color: #333;
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
     }
+    .data-table th, .data-table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .data-table th { background: #f5f5f5; }
+    .data-table tr:hover { background: #f9f9f9; }
+    
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .delete-btn:hover { background: #c82333; }
   </style>
 </head>
 <body>
@@ -99,7 +109,7 @@
       <p>Enter password 请输入密码</p>
       <input type="password" class="password-input" id="passwordInput" 
              placeholder="Password" onkeypress="if(event.key==='Enter')checkPassword()">
-      <div class="password-error" id="passwordError">Incorrect password 密码错误</div>
+      <div class="password-error" id="passwordError">Incorrect password</div>
       <button class="password-submit" onclick="checkPassword()">Enter 进入</button>
     </div>
   </div>
@@ -118,14 +128,12 @@
 
     <!-- Password Settings -->
     <section class="card">
-      <h2 class="card-title">🔐 Security Settings 安全设置</h2>
-      
+      <h2 class="card-title">🔐 Security 安全设置</h2>
       <div class="category-section password-section">
         <div class="form-group">
-          <label>Dashboard Password 仪表板密码</label>
+          <label>Admin Password 管理员密码</label>
           <input type="text" id="dashboardPassword" placeholder="Enter new password">
-          <p class="help-text">This password protects the dashboard and admin panel</p>
-          <button class="btn btn-primary" onclick="savePassword()">Save Password 保存密码</button>
+          <button class="btn btn-primary" onclick="savePassword()">Save 保存</button>
         </div>
       </div>
     </section>
@@ -133,7 +141,6 @@
     <!-- Science Settings -->
     <section class="card">
       <h2 class="card-title">🔬 Science & IT 理工科</h2>
-      
       <div class="category-section science-section">
         <div class="form-group">
           <label>Event Name 活动名称</label>
@@ -141,7 +148,7 @@
           <button class="btn btn-primary" onclick="saveSetting('event_name_science', 'eventNameScience')">Save</button>
         </div>
         
-        <div class="section-title">Programmes 课程</div>
+        <h4>Programmes 课程</h4>
         <ul id="programmesScience" class="list"></ul>
         <div class="form-row">
           <input type="text" id="newProgrammeScience" placeholder="New programme">
@@ -153,7 +160,6 @@
     <!-- Business Settings -->
     <section class="card">
       <h2 class="card-title">💼 Business & Art 商科</h2>
-      
       <div class="category-section business-section">
         <div class="form-group">
           <label>Event Name 活动名称</label>
@@ -161,7 +167,7 @@
           <button class="btn btn-primary" onclick="saveSetting('event_name_business', 'eventNameBusiness')">Save</button>
         </div>
         
-        <div class="section-title">Programmes 课程</div>
+        <h4>Programmes 课程</h4>
         <ul id="programmesBusiness" class="list"></ul>
         <div class="form-row">
           <input type="text" id="newProgrammeBusiness" placeholder="New programme">
@@ -170,33 +176,39 @@
       </div>
     </section>
 
-    <!-- Shared Settings -->
+    <!-- Export Data -->
     <section class="card">
-      <h2 class="card-title">📋 Shared Settings 共享设置</h2>
-      
-      <div class="form-group">
-        <label>Max Capacity 最大容量</label>
-        <input type="number" id="maxCapacity" min="1">
-        <button class="btn btn-primary" onclick="saveSetting('max_capacity', 'maxCapacity')">Save</button>
+      <h2 class="card-title">📥 Export Data 导出数据</h2>
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="exportCSV('science')">📥 Export Science CSV</button>
+        <button class="btn btn-primary" onclick="exportCSV('business')">📥 Export Business CSV</button>
       </div>
     </section>
 
-    <!-- Data Management -->
+    <!-- Manage Data -->
     <section class="card">
-      <h2 class="card-title">💾 Data Management 数据管理</h2>
+      <h2 class="card-title">📋 Manage Records 管理记录</h2>
       
-      <div class="button-group" style="margin-bottom: 20px;">
-        <button class="btn btn-primary" onclick="exportCSV('science')">📥 Export Science</button>
-        <button class="btn btn-primary" onclick="exportCSV('business')">📥 Export Business</button>
+      <div style="margin-bottom: 15px;">
+        <select id="manageCategory" class="filter-select" onchange="loadRecords()">
+          <option value="science">Science & IT 理工科</option>
+          <option value="business">Business & Art 商科</option>
+        </select>
+        <button class="btn" onclick="loadRecords()" style="margin-left: 10px;">🔄 Refresh</button>
       </div>
       
+      <div id="recordsTable"></div>
+    </section>
+
+    <!-- Clear Data -->
+    <section class="card">
+      <h2 class="card-title">🗑️ Clear Data 清除数据</h2>
       <div class="button-group">
         <button class="btn btn-danger" onclick="showClearModal('science')">🗑️ Clear Science</button>
         <button class="btn btn-danger" onclick="showClearModal('business')">🗑️ Clear Business</button>
         <button class="btn btn-danger" onclick="showClearModal('all')">🗑️ Clear ALL</button>
       </div>
-      
-      <p class="help-text">⚠️ Clear will permanently delete registration data!</p>
+      <p class="help-text">⚠️ This permanently deletes data!</p>
     </section>
   </main>
 
