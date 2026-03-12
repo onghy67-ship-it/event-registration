@@ -37,7 +37,7 @@
     .header.science-theme { background: linear-gradient(135deg, #004d40, #00897b); }
     .header.business-theme { background: linear-gradient(135deg, #4a148c, #7b1fa2); }
     
-    /* Stats Grid - 4 columns */
+    /* Stats Grid */
     .stats-grid {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1.5fr;
@@ -124,20 +124,17 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .no-long-wait {
-      color: #28a745;
-      font-size: 0.9rem;
-    }
+    .no-long-wait { color: #28a745; font-size: 0.9rem; }
     
-    /* Updated Status Colors */
-    tr.status-urgent { background: #f8d7da; }      /* Red */
-    tr.status-waiting { background: #ffe0b2; }     /* Orange */
-    tr.status-inside { background: #fff9c4; }      /* Yellow */
-    tr.status-consulting { background: #bbdefb; }  /* Blue */
-    tr.status-ended { background: #c8e6c9; }       /* Green */
-    tr.status-noanswer { background: #e0e0e0; }    /* Gray */
+    /* Status Colors */
+    tr.status-urgent { background: #f8d7da; }
+    tr.status-waiting { background: #ffe0b2; }
+    tr.status-inside { background: #fff9c4; }
+    tr.status-consulting { background: #bbdefb; }
+    tr.status-ended { background: #c8e6c9; }
+    tr.status-noanswer { background: #e0e0e0; }
     
-    /* Filter Dropdown */
+    /* Filter */
     .filter-select {
       padding: 10px 15px;
       border: 1px solid #ddd;
@@ -148,46 +145,8 @@
     }
     .filter-select:focus { outline: none; border-color: #4a90d9; }
     
-    /* Sync indicator */
-    .sync-indicator {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 5px;
-    }
-    .sync-indicator.syncing {
-      background: #ffc107;
-      animation: pulse 1s infinite;
-    }
-    .sync-indicator.synced { background: #28a745; }
-    .sync-indicator.error { background: #dc3545; }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    
-    /* Remark input with save indicator */
-    .remark-wrapper { position: relative; }
-    .remark-saving {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.7rem;
-      color: #666;
-    }
-
-    /* =====================
-       LONG WAIT ALERTS
-       ===================== */
-
-    /* Long wait row highlight */
-    tr.long-wait {
-      position: relative;
-    }
-    
+    /* Long wait alerts */
+    tr.long-wait { position: relative; }
     tr.long-wait::before {
       content: '⏰';
       position: absolute;
@@ -197,41 +156,29 @@
       font-size: 1.2rem;
       animation: pulse-icon 1s infinite;
     }
+    tr.long-wait td:first-child { padding-left: 30px; }
     
-    tr.long-wait td:first-child {
-      padding-left: 30px;
-    }
-    
-    /* Flashing alert animation */
-    tr.flash-alert {
-      animation: flash-row 0.5s ease-in-out 5;
-    }
+    tr.flash-alert { animation: flash-row 0.5s ease-in-out 5; }
     
     @keyframes flash-row {
       0%, 100% { background-color: inherit; }
       50% { background-color: #ff6b6b !important; }
     }
-    
     @keyframes pulse-icon {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
     }
     
-    /* Long wait number in stats */
     .long-wait-number.alert {
       color: #dc3545 !important;
       animation: pulse-text 1s infinite;
     }
-    
     @keyframes pulse-text {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
     }
     
-    /* =====================
-       NOTIFICATION POPUP
-       ===================== */
-    
+    /* Notification popup */
     .notification-popup {
       position: fixed;
       top: 20px;
@@ -242,29 +189,16 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       animation: slide-in 0.3s ease-out;
     }
-    
     @keyframes slide-in {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
-    
     .notification-content {
       padding: 15px 20px;
       position: relative;
     }
-    
-    .notification-content strong {
-      display: block;
-      margin-bottom: 5px;
-      font-size: 1rem;
-    }
-    
-    .notification-content p {
-      font-size: 0.9rem;
-      margin: 0;
-      opacity: 0.9;
-    }
-    
+    .notification-content strong { display: block; margin-bottom: 5px; font-size: 1rem; }
+    .notification-content p { font-size: 0.9rem; margin: 0; opacity: 0.9; }
     .notification-content button {
       position: absolute;
       top: 10px;
@@ -276,53 +210,25 @@
       opacity: 0.7;
       line-height: 1;
     }
+    .notification-content button:hover { opacity: 1; }
     
-    .notification-content button:hover {
-      opacity: 1;
-    }
-    
-    /* Notification types */
-    .notification-info {
-      background: #e3f2fd;
-      border-left: 4px solid #2196f3;
-      color: #1565c0;
-    }
-    
-    .notification-success {
-      background: #e8f5e9;
-      border-left: 4px solid #4caf50;
-      color: #2e7d32;
-    }
-    
-    .notification-warning {
-      background: #fff3e0;
-      border-left: 4px solid #ff9800;
-      color: #e65100;
-    }
-    
-    .notification-error {
-      background: #ffebee;
-      border-left: 4px solid #f44336;
-      color: #c62828;
-    }
-    
+    .notification-info { background: #e3f2fd; border-left: 4px solid #2196f3; color: #1565c0; }
+    .notification-success { background: #e8f5e9; border-left: 4px solid #4caf50; color: #2e7d32; }
+    .notification-warning { background: #fff3e0; border-left: 4px solid #ff9800; color: #e65100; }
+    .notification-error { background: #ffebee; border-left: 4px solid #f44336; color: #c62828; }
     .notification-alert {
       background: #f8d7da;
       border-left: 4px solid #dc3545;
       color: #721c24;
       animation: shake-notification 0.5s ease-in-out;
     }
-    
     @keyframes shake-notification {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-5px); }
       40%, 80% { transform: translateX(5px); }
     }
     
-    /* =====================
-       OFFLINE MODE
-       ===================== */
-    
+    /* Offline mode */
     .sync-indicator {
       display: inline-block;
       width: 8px;
@@ -330,32 +236,18 @@
       border-radius: 50%;
       margin-right: 5px;
     }
-    
     .sync-indicator.synced { background: #28a745; }
-    .sync-indicator.syncing { 
-      background: #ffc107; 
-      animation: pulse-indicator 1s infinite;
-    }
+    .sync-indicator.syncing { background: #ffc107; animation: pulse-indicator 1s infinite; }
     .sync-indicator.offline { background: #6c757d; }
     .sync-indicator.error { background: #dc3545; }
-    
     @keyframes pulse-indicator {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(1.2); }
     }
+    .status-badge.offline { background: rgba(108, 117, 125, 0.2) !important; }
     
-    .status-badge.offline {
-      background: rgba(108, 117, 125, 0.2) !important;
-    }
-    
-    /* =====================
-       REMARK SAVE INDICATORS
-       ===================== */
-    
-    .remark-wrapper {
-      position: relative;
-    }
-    
+    /* Remark indicators */
+    .remark-wrapper { position: relative; }
     .remark-saving {
       position: absolute;
       right: 8px;
@@ -364,35 +256,11 @@
       font-size: 0.75rem;
       color: #666;
     }
-    
-    .remark-saving.saving {
-      color: #ffc107;
-    }
-    
-    .remark-saving.saved {
-      color: #28a745;
-    }
-    
-    .remark-saving.retry {
-      color: #ff9800;
-      animation: spin 1s linear infinite;
-    }
-    
-    .remark-saving.offline-queued {
-      color: #6c757d;
-    }
-    
-    @keyframes spin {
-      from { transform: translateY(-50%) rotate(0deg); }
-      to { transform: translateY(-50%) rotate(360deg); }
-    }
-    
-    /* Remark input focus state */
-    .remark-input:focus {
-      outline: none;
-      border-color: #4a90d9;
-      background: white;
-    }
+    .remark-saving.saving { color: #ffc107; }
+    .remark-saving.saved { color: #28a745; }
+    .remark-saving.retry { color: #ff9800; }
+    .remark-saving.offline-queued { color: #6c757d; }
+    .remark-input:focus { outline: none; border-color: #4a90d9; background: white; }
   </style>
 </head>
 <body>
@@ -403,7 +271,7 @@
     </h1>
     <p>Registration Dashboard 登记仪表板</p>
     <span class="status-badge" id="connectionStatus">
-      <span class="sync-indicator synced"></span> Connected
+      <span class="sync-indicator synced"></span> Online
     </span>
   </header>
 
@@ -422,7 +290,6 @@
     <div id="mainContent" style="display: none;">
       <!-- Stats -->
       <section class="stats-grid">
-        <!-- Top 3 Waiting -->
         <div class="top-courses-card">
           <h4>🔥 Top 3 Waiting 热门等候</h4>
           <div id="topCoursesContent">
@@ -430,19 +297,16 @@
           </div>
         </div>
         
-        <!-- Waiting Count -->
         <div class="stat-card waiting">
           <div class="stat-number" id="waitingCount">0</div>
           <div class="stat-label">Waiting 等候</div>
         </div>
         
-        <!-- Inside Count -->
         <div class="stat-card inside">
           <div class="stat-number" id="insideCount">0</div>
           <div class="stat-label">Inside 里面</div>
         </div>
         
-        <!-- Longest Wait -->
         <div class="longest-wait-card">
           <h4>⏰ Longest Wait 最久等候</h4>
           <div id="longestWaitContent">
@@ -518,5 +382,3 @@
   <script src="js/dashboard.js"></script>
 </body>
 </html>
-
-
