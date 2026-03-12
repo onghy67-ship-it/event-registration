@@ -14,7 +14,7 @@ const io = new Server(httpServer, {
 const PORT = process.env.PORT || 3000;
 
 // ⚠️ REPLACE WITH YOUR GOOGLE APPS SCRIPT URL!
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZ-gT1ZZUPqYOdmZ9YZW0boDZSuAsAnZbDF28Z6tBMl2xXAwkkO-ya1_fzyEZqx0QK/exec';
+const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
 
 // Middleware
 app.use(cors());
@@ -22,25 +22,58 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('trust proxy', true);
 
-// Request queue to prevent duplicate requests
-const requestQueue = new Map();
-const DEBOUNCE_TIME = 500; // ms
+// =====================
+// REQUEST QUEUE SYSTEM
+// =====================
 
-// Helper: Call Google Apps Script with debouncing
-async function callGoogleScript(params, debounceKey = null) {
-  // Debounce duplicate requests
-  if (debounceKey) {
-    const lastRequest = requestQueue.get(debounceKey);
-    const now = Date.now();
-    
-    if (lastRequest && (now - lastRequest) < DEBOUNCE_TIME) {
-      console.log('Debounced request:', debounceKey);
-      return { success: true, debounced: true };
-    }
-    
-    requestQueue.set(debounceKey, now);
+class RequestQueue {
+  constructor() {
+    this.queue = [];
+    this.processing = false;
+    this.lastRequestTime = {};
   }
   
+  async add(key, requestFn) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ key, requestFn, resolve, reject });
+      this.process();
+    });
+  }
+  
+  async process() {
+    if (this.processing || this.queue.length === 0) return;
+    
+    this.processing = true;
+    const { key, requestFn, resolve, reject } = this.queue.shift();
+    
+    try {
+      // Add small delay between requests to same record
+      const lastTime = this.lastRequestTime[key] || 0;
+      const timeSince = Date.now() - lastTime;
+      if (timeSince < 500) {
+        await new Promise(r => setTimeout(r, 500 - timeSince));
+      }
+      
+      const result = await requestFn();
+      this.lastRequestTime[key] = Date.now();
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    } finally {
+      this.processing = false;
+      // Process next item
+      setTimeout(() => this.process(), 100);
+    }
+  }
+}
+
+const requestQueue = new RequestQueue();
+
+// =====================
+// GOOGLE SCRIPT HELPER
+// =====================
+
+async function callGoogleScript(params, retries = 3) {
   const url = new URL(GOOGLE_SCRIPT_URL);
   Object.keys(params).forEach(key => {
     if (params[key] !== undefined && params[key] !== null) {
@@ -48,22 +81,37 @@ async function callGoogleScript(params, debounceKey = null) {
     }
   });
   
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    
-    const response = await fetch(url.toString(), {
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeout);
-    
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error('Google Script Error:', error);
-    return { success: false, error: error.message };
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      
+      const response = await fetch(url.toString(), {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      const result = await response.json();
+      
+      if (result.success || result.data) {
+        return result;
+      }
+      
+      // If error, retry
+      if (attempt < retries) {
+        console.log(`Retry attempt ${attempt + 1} for:`, params.action);
+        await new Promise(r => setTimeout(r, 500 * attempt));
+      }
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error.message);
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 500 * attempt));
+      }
+    }
   }
+  
+  return { success: false, error: 'Failed after retries' };
 }
 
 // Get base URL for QR
@@ -95,13 +143,15 @@ app.post('/api/registrations', async (req, res) => {
     return res.status(400).json({ success: false, error: 'All fields required' });
   }
   
-  const result = await callGoogleScript({
-    action: 'add',
-    student_name,
-    phone_number,
-    programme,
-    category: category || 'science'
-  });
+  const result = await requestQueue.add('create', () => 
+    callGoogleScript({
+      action: 'add',
+      student_name,
+      phone_number,
+      programme,
+      category: category || 'science'
+    })
+  );
   
   if (result.success && result.data) {
     io.emit('new-registration', result.data);
@@ -115,33 +165,37 @@ app.patch('/api/registrations/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   
-  const debounceKey = `status_${id}`;
-  const result = await callGoogleScript({
-    action: 'updateStatus',
-    id,
-    status
-  }, debounceKey);
+  const result = await requestQueue.add(`status_${id}`, () =>
+    callGoogleScript({
+      action: 'updateStatus',
+      id,
+      status
+    })
+  );
   
-  if (result.success && result.data && !result.debounced) {
+  if (result.success && result.data) {
     io.emit('registration-updated', result.data);
   }
   
   res.json(result);
 });
 
-// Update remark
+// Update remark - WITH CONFLICT DETECTION
 app.patch('/api/registrations/:id/remark', async (req, res) => {
   const { id } = req.params;
-  const { remark } = req.body;
+  const { remark, expectedVersion, appendMode } = req.body;
   
-  const debounceKey = `remark_${id}`;
-  const result = await callGoogleScript({
-    action: 'updateRemark',
-    id,
-    remark: remark || ''
-  }, debounceKey);
+  const result = await requestQueue.add(`remark_${id}`, () =>
+    callGoogleScript({
+      action: 'updateRemark',
+      id,
+      remark: remark || '',
+      expectedVersion: expectedVersion || '',
+      appendMode: appendMode ? 'true' : 'false'
+    })
+  );
   
-  if (result.success && result.data && !result.debounced) {
+  if (result.success && result.data) {
     io.emit('registration-updated', result.data);
   }
   
@@ -152,10 +206,12 @@ app.patch('/api/registrations/:id/remark', async (req, res) => {
 app.delete('/api/registrations/:id', async (req, res) => {
   const { id } = req.params;
   
-  const result = await callGoogleScript({
-    action: 'delete',
-    id
-  });
+  const result = await requestQueue.add(`delete_${id}`, () =>
+    callGoogleScript({
+      action: 'delete',
+      id
+    })
+  );
   
   if (result.success) {
     io.emit('registration-deleted', { id });
@@ -174,11 +230,13 @@ app.get('/api/settings', async (req, res) => {
 app.post('/api/settings', async (req, res) => {
   const { key, value } = req.body;
   
-  const result = await callGoogleScript({
-    action: 'saveSettings',
-    key,
-    value: typeof value === 'object' ? JSON.stringify(value) : value
-  });
+  const result = await requestQueue.add('settings', () =>
+    callGoogleScript({
+      action: 'saveSettings',
+      key,
+      value: typeof value === 'object' ? JSON.stringify(value) : value
+    })
+  );
   
   if (result.success) {
     io.emit('settings-updated', { key, value });
@@ -191,10 +249,12 @@ app.post('/api/settings', async (req, res) => {
 app.post('/api/admin/clear', async (req, res) => {
   const { category } = req.body;
   
-  const result = await callGoogleScript({ 
-    action: 'clear',
-    category 
-  });
+  const result = await requestQueue.add('clear', () =>
+    callGoogleScript({ 
+      action: 'clear',
+      category 
+    })
+  );
   
   if (result.success) {
     io.emit('registrations-cleared', { category });
@@ -237,14 +297,14 @@ app.get('/api/admin/export/csv', async (req, res) => {
       `"${r.programme}"`,
       r.category,
       r.status,
-      `"${r.remark || ''}"`,
+      `"${(r.remark || '').replace(/"/g, '""')}"`,
       `"${r.time_in || ''}"`
     ].join(','));
   });
   
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  res.setHeader('Content-Type', 'text/csv');
-  res.send(rows.join('\n'));
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.send('\ufeff' + rows.join('\n')); // BOM for Excel compatibility
 });
 
 // QR Code
@@ -271,36 +331,39 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'public', 'register.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// Socket.IO
+// =====================
+// SOCKET.IO
+// =====================
+
 io.on('connection', (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
   
-  // Send periodic ping to keep connection alive
-  const pingInterval = setInterval(() => {
-    socket.emit('ping');
-  }, 25000);
+  // Heartbeat to keep connection alive
+  const heartbeat = setInterval(() => {
+    socket.emit('heartbeat', { time: Date.now() });
+  }, 20000);
+  
+  socket.on('heartbeat-response', () => {
+    // Client is alive
+  });
   
   socket.on('disconnect', () => {
     console.log(`❌ Client disconnected: ${socket.id}`);
-    clearInterval(pingInterval);
-  });
-  
-  socket.on('pong', () => {
-    // Client responded to ping
+    clearInterval(heartbeat);
   });
 });
 
-// Start server
+// =====================
+// START SERVER
+// =====================
+
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║   🎉 Event Registration System v3                         ║');
+  console.log('║   🎉 Event Registration System v4                         ║');
+  console.log('║   With Queue System & Conflict Detection                  ║');
   console.log('╠═══════════════════════════════════════════════════════════╣');
   console.log(`║   Port: ${PORT}                                              ║`);
-  console.log('║   Dashboard:    / (No password)                           ║');
-  console.log('║   Registration: /register.html                            ║');
-  console.log('║   Admin:        /admin.html (Password protected)          ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log('');
 });
-
